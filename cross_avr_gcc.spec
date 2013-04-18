@@ -1,11 +1,11 @@
 Summary:	Cross GNU Compiler Collection for the x86_64 architecture
 Name:		cross_avr_gcc
-Version:	4.7.2
+Version:	4.7.3
 Release:	1
 License:	GPL v3+
 Group:		Development/Languages
 Source0:	ftp://gcc.gnu.org/pub/gcc/releases/gcc-%{version}/gcc-%{version}.tar.bz2
-# Source0-md5:	cc308a0891e778cfda7a151ab8a6e762
+# Source0-md5:	86f428a30379bdee0224e353ee2f999e
 URL:		http://gcc.gnu.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
