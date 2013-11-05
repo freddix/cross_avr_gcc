@@ -1,20 +1,22 @@
 Summary:	Cross GNU Compiler Collection for the x86_64 architecture
 Name:		cross_avr_gcc
-Version:	4.7.3
+Version:	4.8.2
 Release:	1
 License:	GPL v3+
 Group:		Development/Languages
 Source0:	ftp://gcc.gnu.org/pub/gcc/releases/gcc-%{version}/gcc-%{version}.tar.bz2
-# Source0-md5:	86f428a30379bdee0224e353ee2f999e
+# Source0-md5:	a3d7d63b9cb6b6ea049469a0c4a43c9d
 URL:		http://gcc.gnu.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	chrpath
+BuildRequires:	cloog-devel
 BuildRequires:	coreutils
 BuildRequires:	cross_avr_binutils
 BuildRequires:	flex
 BuildRequires:	gmp-devel
+BuildRequires:	isl-devel
 BuildRequires:	mpc-devel
 BuildRequires:	mpfr-devel
 BuildRequires:	texinfo
@@ -39,8 +41,14 @@ Cross GNU Compiler Collection for the x86_64 architecture.
 %prep
 %setup -qn gcc-%{version}
 
+%if 0
 # undefined reference to `__stack_chk_guard'
 sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure
+%endif
+
+# override snapshot version.
+echo %{version} > gcc/BASE-VER
+echo "release" > gcc/DEV-PHASE
 
 %build
 install -d obj-%{target}
@@ -48,6 +56,7 @@ cd obj-%{target}
 
 TEXCONFIG=false				\
 CFLAGS="%{rpmcflags}"			\
+CXXFLAGS="%{rpmcxxflags}"	\
 LDFLAGS="%{rpmldflags}"			\
 ../configure				\
 	--build=%{_build}		\
@@ -60,9 +69,22 @@ LDFLAGS="%{rpmldflags}"			\
 	--mandir=%{_mandir}		\
 	--prefix=%{_prefix}		\
 	--sbindir=%{_sbindir}		\
+	--disable-cloog-version-check	\
+	--disable-install-libiberty	\
 	--disable-libssp		\
+	--disable-libstdcxx-pch		\
+	--disable-libunwind-exceptions	\
+	--disable-linker-build-id	\
 	--disable-nls			\
-	--enable-languages=c,c++
+	--enable-__cxa_atexit		\
+	--enable-clocale=gnu		\
+	--enable-cloog-backend=isl	\
+	--enable-gnu-unique-object	\
+	--enable-languages=c,c++	\
+	--enable-lto			\
+	--enable-plugin			\
+	--enable-shared			\
+	--with-pkgversion="Freddix"
 cd ..
 
 %{__make} -C obj-%{target} \
@@ -76,13 +98,12 @@ install -d $RPM_BUILD_ROOT{%{_bindir},%{_datadir}}
 	DESTDIR=$RPM_BUILD_ROOT
 
 install obj-%{target}/gcc/specs $RPM_BUILD_ROOT%{gcclib}
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
 
 gccdir=$RPM_BUILD_ROOT%{gcclib}
 mv $gccdir/include-fixed/*.h $gccdir/include
-rm -r $gccdir/include-fixed
-rm -r $gccdir/install-tools
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
+%{__rm} -r $gccdir/include-fixed
+%{__rm} -r $gccdir/install-tools
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/libiberty.a
 
 %clean
 rm -rf $RPM_BUILD_ROOT
